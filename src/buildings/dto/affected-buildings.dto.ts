@@ -1,3 +1,6 @@
+import { BuildingStatus } from '../../common/enums/status.enum';
+import { DisasterType } from '../../common/enums/disaster-type.enum';
+
 export interface BuildingProperties {
   BULBuildingID: number;
   NoofApartments: number;
@@ -7,12 +10,18 @@ export interface BuildingProperties {
 export interface BuildingResult {
   id: number;
   apartments: number | null;
+  status: BuildingStatus;
 }
 
 export interface AffectedBuildingsResponse {
+  type: DisasterType;
   center: { lon: number; lat: number };
-  radius_meters: number;
-  total_buildings: number;
-  total_apartments: number;
+  parameters: Record<string, number>;
+  summary: {
+    totalBuildings: number;
+    totalApartments: number;
+    severeCount: number;
+    mildCount: number;
+  };
   buildings: BuildingResult[];
 }
