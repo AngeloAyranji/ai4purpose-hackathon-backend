@@ -15,6 +15,9 @@ export interface AgentInvokeOptions {
 
   /** Optional conversation history for context */
   history?: { role: 'user' | 'assistant'; content: string }[];
+
+  /** Optional session ID for WebSocket events */
+  sessionId?: string;
 }
 
 export interface AgentResponse {

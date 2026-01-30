@@ -3,7 +3,8 @@ import { generateText, stepCountIs } from 'ai';
 import { google } from '@ai-sdk/google';
 import { BuildingsService } from '../buildings/buildings.service';
 import { HospitalsService } from '../hospitals/hospitals.service';
-import { createAllTools, selectTools, ToolName } from './tools';
+import { PublisherService } from '../websocket/publisher.service';
+import { createAllTools, selectTools, wrapToolsWithPublisher, ToolName } from './tools';
 import { AgentInvokeOptions, AgentResponse } from './dto/agent.dto';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class AgentService {
   constructor(
     private readonly buildingsService: BuildingsService,
     private readonly hospitalsService: HospitalsService,
+    private readonly publisherService: PublisherService,
   ) {
     this.allTools = createAllTools(buildingsService, hospitalsService);
   }
@@ -25,12 +27,18 @@ export class AgentService {
       tools: toolNames,
       maxSteps = 10,
       history = [],
+      sessionId,
     } = options;
 
     // Select tools (all if not specified)
-    const selectedTools = toolNames?.length
+    let selectedTools = toolNames?.length
       ? selectTools(this.allTools, toolNames)
       : this.allTools;
+
+    // Wrap with publisher if sessionId is provided
+    if (sessionId) {
+      selectedTools = wrapToolsWithPublisher(selectedTools, this.publisherService, sessionId);
+    }
 
     this.logger.log(`Invoking agent with ${Object.keys(selectedTools).length} tools`);
 
