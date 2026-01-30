@@ -15,6 +15,7 @@ import {
 } from './dto/affected-buildings.dto';
 import { BuildingStatus } from '../common/enums/status.enum';
 import { DisasterType } from '../common/enums/disaster-type.enum';
+import { BuildingType } from '../common/enums/building-type.enum';
 
 const CONDITION_SCORES: Record<string, number> = {
   'Evicted Building': 1.0,
@@ -46,6 +47,21 @@ const USE_TYPE_SCORES: Record<string, number> = {
   'Mixed-use': 0.4,
   'Institutional': 0.3,
   'Parking': 0.2,
+};
+
+const TYPE_MAPPINGS: Record<BuildingType, string> = {
+  [BuildingType.HOSPITAL]: 'Hospital',
+  [BuildingType.SCHOOL]: 'School',
+  [BuildingType.UNIVERSITY]: 'University',
+  [BuildingType.EDUCATIONAL]: 'Educational',
+  [BuildingType.PUBLIC]: 'Public Institutions',
+  [BuildingType.MOSQUE]: 'Mosque',
+  [BuildingType.CHURCH]: 'Church',
+  [BuildingType.RELIGIOUS]: 'Religious',
+  [BuildingType.POLICE]: 'Police Station',
+  [BuildingType.EMBASSY]: 'Embassy',
+  [BuildingType.PORT]: 'Port',
+  [BuildingType.ARMY]: 'Army Zone',
 };
 
 @Injectable()
@@ -545,6 +561,106 @@ export class BuildingsService implements OnModuleInit {
       },
       statistics,
       buildings: affectedBuildings,
+    };
+  }
+
+  private cleanValue<T>(value: T, invalidValues: any[] = ['Not Available', 'Not Available Info', -999, null]): T | undefined {
+    return invalidValues.includes(value) ? undefined : value;
+  }
+
+  findById(id: number): {
+    id: number;
+    name?: string;
+    arabicName?: string;
+    use?: string;
+    useDescription?: string;
+    floors?: number;
+    apartments?: number;
+    sector?: string;
+    status?: string;
+    yearCompleted?: number;
+    heightMeters?: number;
+    typicalFloorHeight?: number;
+    groundFloorHeight?: number;
+    basementFloors?: number;
+    basementUse?: string;
+    groundFloorUse?: string;
+    groundFloorCommercial?: string;
+    rooftopUse?: string;
+    permitNumber?: string;
+    permitYear?: number;
+    status2018?: string;
+    mohafaza?: string;
+    kadaa?: string;
+    cadastral?: string;
+    cityOfTenant?: string;
+    parcelId?: string;
+    undpBuildingId?: number;
+  } | null {
+    const feature = this.geojsonData.features.find(
+      (f) => f.properties.BULBuildingID === id,
+    );
+
+    if (!feature) {
+      return null;
+    }
+
+    const props = feature.properties;
+    return {
+      id: props.BULBuildingID,
+      name: this.cleanValue(props.EnglishName),
+      arabicName: this.cleanValue(props.ArabicName),
+      use: this.cleanValue(props.Building_Use),
+      useDescription: this.cleanValue(props.UseDescription),
+      floors: this.cleanValue(props.NoofFloor),
+      apartments: this.cleanValue(props.NoofApartments),
+      sector: this.cleanValue(props.Sector),
+      status: this.cleanValue(props.Status2022),
+      yearCompleted: this.cleanValue(props.YearCompleted),
+      heightMeters: this.cleanValue(props.Building_Hight_m),
+      typicalFloorHeight: this.cleanValue(props.TypicalFloorHeight),
+      groundFloorHeight: this.cleanValue(props.Ground_Floor_Height),
+      basementFloors: this.cleanValue(props.NoofBasementFloor),
+      basementUse: this.cleanValue(props.BasementFloorUse),
+      groundFloorUse: this.cleanValue(props.GroundFloorUse),
+      groundFloorCommercial: this.cleanValue(props.GroundFloorCommercialUse),
+      rooftopUse: this.cleanValue(props.RooftopFloorUse),
+      permitNumber: this.cleanValue(props.PermitNumber),
+      permitYear: this.cleanValue(props.PermitYear),
+      status2018: this.cleanValue(props.Status2018),
+      mohafaza: this.cleanValue(props.Mohafaza),
+      kadaa: this.cleanValue(props.Kadaa),
+      cadastral: this.cleanValue(props.Cadastral),
+      cityOfTenant: this.cleanValue(props.CityofTenant),
+      parcelId: this.cleanValue(props.ParcelID),
+      undpBuildingId: this.cleanValue(props.UNDPBuildingID),
+    };
+  }
+
+  findByTypes(types: BuildingType[]): {
+    total: number;
+    buildingsByType: Record<BuildingType, { count: number; buildings: { id: number }[] }>;
+  } {
+    const buildingsByType: Record<string, { count: number; buildings: { id: number }[] }> = {};
+
+    for (const type of types) {
+      const useDescription = TYPE_MAPPINGS[type];
+      const matchingBuildings = this.geojsonData.features.filter((feature) => {
+        const featureUseDescription = feature.properties.UseDescription;
+        return featureUseDescription && featureUseDescription.includes(useDescription);
+      });
+
+      buildingsByType[type] = {
+        count: matchingBuildings.length,
+        buildings: matchingBuildings.map((f) => ({ id: f.properties.BULBuildingID })),
+      };
+    }
+
+    const total = Object.values(buildingsByType).reduce((sum, entry) => sum + entry.count, 0);
+
+    return {
+      total,
+      buildingsByType: buildingsByType as Record<BuildingType, { count: number; buildings: { id: number }[] }>,
     };
   }
 }

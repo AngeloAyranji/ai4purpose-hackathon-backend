@@ -21,7 +21,6 @@ async function bootstrap() {
   await app.listen(port);
 
   console.log(`MIR'AAT API running on http://localhost:${port}`);
-  console.log(`Test endpoint: http://localhost:${port}/buildings/affected?lon=35.5177&lat=33.9022&radius=2000`);
 }
 
 bootstrap();
