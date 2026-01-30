@@ -1,4 +1,4 @@
 export enum DisasterType {
-  RADIUS = 'RADIUS',
+  BLAST = 'BLAST',
   EARTHQUAKE = 'EARTHQUAKE',
 }

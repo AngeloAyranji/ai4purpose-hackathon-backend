@@ -1,20 +1,20 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { BuildingsService } from './buildings.service';
 import { AffectedBuildingsResponse } from './dto/affected-buildings.dto';
-import { RadiusQueryDto } from './dto/radius-query.dto';
+import { BlastQueryDto } from './dto/blast-query.dto';
 import { EarthquakeQueryDto } from './dto/earthquake-query.dto';
 
 @Controller('buildings')
 export class BuildingsController {
   constructor(private readonly buildingsService: BuildingsService) {}
 
-  @Get('affected/radius')
-  getByRadius(@Query() query: RadiusQueryDto): AffectedBuildingsResponse {
-    return this.buildingsService.findByRadius(
+  @Get('affected/blast')
+  getByBlast(@Query() query: BlastQueryDto): AffectedBuildingsResponse {
+    return this.buildingsService.findByBlast(
       query.lon,
       query.lat,
-      query.radius,
-      query.severeRadius,
+      query.yield,
+      query.includeVulnerability ?? false,
     );
   }
 
@@ -24,6 +24,7 @@ export class BuildingsController {
       query.lon,
       query.lat,
       query.magnitude,
+      query.includeVulnerability ?? false,
     );
   }
 }

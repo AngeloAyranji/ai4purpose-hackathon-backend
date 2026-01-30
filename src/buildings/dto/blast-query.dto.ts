@@ -1,7 +1,7 @@
 import { IsNumber, Min, Max, IsOptional, IsBoolean } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
-export class EarthquakeQueryDto {
+export class BlastQueryDto {
   @Type(() => Number)
   @IsNumber()
   @Min(-180)
@@ -17,8 +17,7 @@ export class EarthquakeQueryDto {
   @Type(() => Number)
   @IsNumber()
   @Min(1)
-  @Max(10)
-  magnitude: number;
+  yield: number;
 
   @IsOptional()
   @Transform(({ value }) => value === 'true' || value === true)
