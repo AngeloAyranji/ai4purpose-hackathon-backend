@@ -1,10 +1,12 @@
 # MIR'AAT API
 
-A disaster impact assessment API for Beirut buildings. Simulates blast and earthquake scenarios to identify affected structures and estimate damage severity.
+A disaster impact assessment API for Beirut buildings with AI-powered crisis management assistance. Simulates blast and earthquake scenarios, identifies affected structures, and provides real-time chat support via WebSocket.
 
 ## Overview
 
 MIR'AAT analyzes building data from Beirut to assess disaster impact. Given a disaster location and parameters, it identifies all buildings within the affected radius and classifies damage as **severe** or **mild** based on distance and optional vulnerability factors.
+
+The system includes an AI-powered crisis management assistant accessible via WebSocket for real-time interaction.
 
 ## API Endpoints
 
@@ -26,6 +28,40 @@ Both endpoints accept:
 |----------|-------------|
 | `GET /buildings/:id` | Get building details by ID |
 | `GET /buildings?type=` | Query buildings by category (hospital, school, mosque, etc.) |
+
+### Hospitals
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /hospitals` | List all hospitals |
+| `GET /hospitals/affected/blast` | Hospitals affected by blast |
+| `GET /hospitals/affected/earthquake` | Hospitals affected by earthquake |
+
+---
+
+## AI Crisis Management Agent
+
+The system includes an AI assistant powered by Google Gemini that helps users understand disaster impact and navigate the crisis map.
+
+### Capabilities
+
+- Query affected buildings and hospitals in specific areas
+- Explain damage severity classifications
+- Provide guidance on disaster response
+- Answer questions about the map interface
+
+### Available Tools
+
+The agent has access to these tools for real-time data:
+
+| Tool | Description |
+|------|-------------|
+| `getAffectedBuildingsByBlast` | Query buildings affected by blast simulation |
+| `getAffectedHospitalsByBlast` | Query hospitals affected by blast simulation |
+| `getAffectedBuildingsByEarthquake` | Query buildings affected by earthquake |
+| `getAffectedHospitalsByEarthquake` | Query hospitals affected by earthquake |
+| `getBuildingsByType` | Query buildings by category |
+| `getAllHospitals` | List all hospitals in Beirut |
 
 ---
 
@@ -181,6 +217,74 @@ Available categories for the `/buildings?type=` endpoint:
 | `embassy` | Foreign embassies |
 | `port` | Port facilities |
 | `army` | Military zones |
+
+---
+
+## WebSocket API
+
+Real-time chat interface for the AI crisis management assistant.
+
+### Connection
+
+Connect via Socket.IO to `ws://localhost:3000`
+
+### Events
+
+| Event | Direction | Description |
+|-------|-----------|-------------|
+| `joinSession` | Client → Server | Join a chat session room |
+| `leaveSession` | Client → Server | Leave a chat session room |
+| `crisisManagementMapAgent` | Client → Server | Send message to AI agent |
+
+### Chat Message Payload
+
+```typescript
+{
+  sessionId: string;    // Unique session identifier
+  message: string;      // User message
+  agentId?: string;     // Optional agent ID (defaults to crisis-map-helper)
+}
+```
+
+### Example Usage
+
+```javascript
+import { io } from 'socket.io-client';
+
+const socket = io('http://localhost:3000');
+const sessionId = 'my-session-123';
+
+// Join session
+socket.emit('joinSession', sessionId);
+
+// Send message
+socket.emit('crisisManagementMapAgent', {
+  sessionId,
+  message: 'What hospitals are near the port?'
+}, (response) => {
+  console.log(response.response.text);
+});
+```
+
+### Session Persistence
+
+Chat history is persisted in MongoDB Atlas. Sessions survive server restarts, allowing users to continue conversations.
+
+---
+
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `MONGODB_URI` | MongoDB Atlas connection string |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | Google Gemini API key for AI agent |
+
+Create a `.env` file in the project root:
+
+```
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/<database>
+GOOGLE_GENERATIVE_AI_API_KEY=your-api-key
+```
 
 ---
 
