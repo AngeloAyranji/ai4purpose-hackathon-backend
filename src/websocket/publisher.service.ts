@@ -47,4 +47,21 @@ export class PublisherService {
     const eventName = `${toUpperSnakeCase(toolName)}_ENDED`;
     this.server.to(sessionId).emit(eventName, event);
   }
+
+  emitAgentResponse(
+    sessionId: string,
+    response: {
+      text: string;
+      toolCalls: any[];
+      steps: number;
+      usage: any;
+    },
+  ): void {
+    if (!this.server) return;
+
+    this.server.to(sessionId).emit('AGENT_RESPONSE', {
+      ...response,
+      timestamp: new Date().toISOString(),
+    });
+  }
 }

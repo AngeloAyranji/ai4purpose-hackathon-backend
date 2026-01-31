@@ -71,7 +71,7 @@ export class AgentService {
         })),
     );
 
-    return {
+    const response = {
       text: result.text,
       toolCalls,
       steps: result.steps.length,
@@ -81,5 +81,12 @@ export class AgentService {
         totalTokens: (result.usage.inputTokens ?? 0) + (result.usage.outputTokens ?? 0),
       },
     };
+
+    // Emit agent response via WebSocket if sessionId provided
+    if (sessionId) {
+      this.publisherService.emitAgentResponse(sessionId, response);
+    }
+
+    return response;
   }
 }
