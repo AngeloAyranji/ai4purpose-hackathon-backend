@@ -1,8 +1,9 @@
 import { AgentConfig } from './types';
 import { beirutCrisisAgent } from './beirut-crisis.agent';
+import { scenarioBuilderAgent } from './scenario-builder.agent';
 
 // Register all agents here
-const agents: AgentConfig[] = [beirutCrisisAgent];
+const agents: AgentConfig[] = [beirutCrisisAgent, scenarioBuilderAgent];
 
 // Create lookup map
 const agentMap = new Map<string, AgentConfig>(
@@ -23,3 +24,4 @@ export function getDefaultAgent(): AgentConfig {
 
 export { AgentConfig } from './types';
 export { beirutCrisisAgent } from './beirut-crisis.agent';
+export { scenarioBuilderAgent } from './scenario-builder.agent';

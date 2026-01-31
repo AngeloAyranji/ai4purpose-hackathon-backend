@@ -5,6 +5,7 @@ import { HospitalsModule } from './hospitals/hospitals.module';
 import { AgentModule } from './agent/agent.module';
 import { WebsocketModule } from './websocket/websocket.module';
 import { ChatSessionModule } from './chat-session/chat-session.module';
+import { ScenarioModule } from './scenario/scenario.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { ChatSessionModule } from './chat-session/chat-session.module';
     ChatSessionModule,
     BuildingsModule,
     HospitalsModule,
+    ScenarioModule,
     AgentModule,
     WebsocketModule,
   ],

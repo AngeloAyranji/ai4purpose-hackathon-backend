@@ -1,8 +1,10 @@
 import { BuildingsService } from '../../buildings/buildings.service';
 import { HospitalsService } from '../../hospitals/hospitals.service';
+import { ScenarioService } from '../../scenario/scenario.service';
 import { PublisherService } from '../../websocket/publisher.service';
 import { createBuildingsTools } from './buildings.tools';
 import { createHospitalsTools } from './hospitals.tools';
+import { createScenarioTools } from './scenario.tools';
 
 export type ToolName =
   | 'getBuildingById'
@@ -13,16 +15,34 @@ export type ToolName =
   | 'getHospitalById'
   | 'findNearestHospitals'
   | 'analyzeBlastImpactOnHospitals'
-  | 'analyzeEarthquakeImpactOnHospitals';
+  | 'analyzeEarthquakeImpactOnHospitals'
+  // Scenario tools
+  | 'getAffectedBuildings'
+  | 'getAffectedHospitals'
+  | 'getCriticalInfrastructure'
+  | 'calculateCasualties'
+  | 'estimateEconomicImpact'
+  | 'identifyHighRiskBuildings'
+  | 'generateMitigationPlan'
+  | 'simulateWithMitigation'
+  | 'getSectorAnalysis'
+  | 'getBuildingDetails';
 
 export function createAllTools(
   buildingsService: BuildingsService,
   hospitalsService: HospitalsService,
+  scenarioService?: ScenarioService,
 ) {
-  return {
+  const tools = {
     ...createBuildingsTools(buildingsService),
     ...createHospitalsTools(hospitalsService),
   };
+
+  if (scenarioService) {
+    Object.assign(tools, createScenarioTools(scenarioService));
+  }
+
+  return tools;
 }
 
 export function selectTools<T extends Record<string, any>>(
@@ -40,6 +60,7 @@ export function selectTools<T extends Record<string, any>>(
 
 export { createBuildingsTools } from './buildings.tools';
 export { createHospitalsTools } from './hospitals.tools';
+export { createScenarioTools } from './scenario.tools';
 
 // Wrap tools with event emission for WebSocket publishing
 export function wrapToolsWithPublisher<T extends Record<string, any>>(

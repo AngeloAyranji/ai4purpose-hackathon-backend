@@ -1,8 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional, Inject, forwardRef } from '@nestjs/common';
 import { generateText, stepCountIs } from 'ai';
 import { google } from '@ai-sdk/google';
 import { BuildingsService } from '../buildings/buildings.service';
 import { HospitalsService } from '../hospitals/hospitals.service';
+import { ScenarioService } from '../scenario/scenario.service';
 import { PublisherService } from '../websocket/publisher.service';
 import { createAllTools, selectTools, wrapToolsWithPublisher, ToolName } from './tools';
 import { AgentInvokeOptions, AgentResponse } from './dto/agent.dto';
@@ -16,8 +17,15 @@ export class AgentService {
     private readonly buildingsService: BuildingsService,
     private readonly hospitalsService: HospitalsService,
     private readonly publisherService: PublisherService,
+    @Optional()
+    @Inject(forwardRef(() => ScenarioService))
+    private readonly scenarioService?: ScenarioService,
   ) {
-    this.allTools = createAllTools(buildingsService, hospitalsService);
+    this.allTools = createAllTools(
+      buildingsService,
+      hospitalsService,
+      scenarioService,
+    );
   }
 
   async invoke(options: AgentInvokeOptions): Promise<AgentResponse> {
@@ -32,7 +40,7 @@ export class AgentService {
 
     // Select tools (all if not specified)
     let selectedTools = toolNames?.length
-      ? selectTools(this.allTools, toolNames)
+      ? selectTools(this.allTools, toolNames as any)
       : this.allTools;
 
     // Wrap with publisher if sessionId is provided
