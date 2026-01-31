@@ -13,16 +13,12 @@ import { Server, Socket } from 'socket.io';
 import { PublisherService } from './publisher.service';
 import { AgentService } from '../agent/agent.service';
 import { getAgent, getDefaultAgent } from '../agent/agents';
+import { ChatSessionService } from '../chat-session/chat-session.service';
 
 interface ChatMessagePayload {
   sessionId: string;
   message: string;
   agentId?: string;
-}
-
-interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
 }
 
 @WebSocketGateway({
@@ -37,11 +33,11 @@ export class WebsocketGateway
   server: Server;
 
   private readonly logger = new Logger(WebsocketGateway.name);
-  private sessions: Map<string, ChatMessage[]> = new Map();
 
   constructor(
     private readonly publisherService: PublisherService,
     private readonly agentService: AgentService,
+    private readonly chatSessionService: ChatSessionService,
   ) {}
 
   afterInit(server: Server) {
@@ -93,8 +89,8 @@ export class WebsocketGateway
       return { success: false, error: `Agent '${agentId}' not found` };
     }
 
-    // Get conversation history
-    const history = this.sessions.get(sessionId) || [];
+    // Get conversation history from MongoDB
+    const history = await this.chatSessionService.getHistory(sessionId);
 
     try {
       const response = await this.agentService.invoke({
@@ -106,25 +102,18 @@ export class WebsocketGateway
         sessionId,
       });
 
-      // Store messages in history
-      this.addMessage(sessionId, 'user', message);
-      this.addMessage(sessionId, 'assistant', response.text);
+      // Store messages in MongoDB
+      await this.chatSessionService.addMessage(sessionId, 'user', message);
+      await this.chatSessionService.addMessage(
+        sessionId,
+        'assistant',
+        response.text,
+      );
 
       return { success: true, response };
     } catch (error) {
       this.logger.error(`Error processing message: ${error.message}`);
       return { success: false, error: error.message };
     }
-  }
-
-  private addMessage(
-    sessionId: string,
-    role: 'user' | 'assistant',
-    content: string,
-  ): void {
-    if (!this.sessions.has(sessionId)) {
-      this.sessions.set(sessionId, []);
-    }
-    this.sessions.get(sessionId)!.push({ role, content });
   }
 }
